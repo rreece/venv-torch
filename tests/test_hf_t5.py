@@ -1,25 +1,23 @@
 """
-Test Huggingface pretrained BERT.
+Test Huggingface pretrained t5.
 """
 
 
-from hf_wrappers.model import ModelWrapper
+from hf_wrappers.models.t5 import T5Handler
 
 
 def test_inference():
-    model = ModelWrapper()
-    sample = "That dog is cute."
+    model = T5Handler()
+    sample = "I would like a bottle of red wine, please."
+    answer = "Je voudrais une bouteille de vin rouge, s'il vous plaît."
     result = model.run_inference(sample)
-    assert result == 1
-    sample = "That makes me sick."
-    result = model.run_inference(sample)
-    assert result == 0
+    assert result == answer
 
 
 def main():
-    model = ModelWrapper()
+    model = T5Handler()
     
-    print("Give a sample of text to score its sentiment. (q to quit)")
+    print("Give a sample of text to prompt T5. (q to quit)")
     
     while True:
         print("")
@@ -29,7 +27,7 @@ def main():
 
         result = model.run_inference(sample)
         print(result)
-    
+
     print("")
     print("Done.")
 
