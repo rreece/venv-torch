@@ -19,8 +19,16 @@ class BertHandler:
         self.tokenizer = BertTokenizer.from_pretrained(self.model_name)
         self.model = BertForSequenceClassification.from_pretrained(self.model_name)
 
+        self.device = None
+        if torch.cuda.is_available():
+            self.device = torch.device("cuda")
+            self.model.to(self.device)
+
     def run_inference(self, sample):
         inputs = self.tokenizer(sample, return_tensors="pt")
+
+        if self.device is not None:
+            inputs.to(self.device)
 
         with torch.no_grad():
             outputs = self.model(**inputs)
