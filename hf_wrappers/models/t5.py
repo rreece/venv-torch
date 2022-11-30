@@ -15,7 +15,9 @@ class T5Handler:
     def __init__(self, model_name=None):
         if model_name is None:
             self.model_name = "t5-base"
-        self.tokenizer = T5Tokenizer.from_pretrained(self.model_name)
+        self.max_length = 512
+        self.tokenizer = T5Tokenizer.from_pretrained(self.model_name,
+                model_max_length=self.max_length)
         self.model = T5ForConditionalGeneration.from_pretrained(self.model_name)
 
     def run_inference(self, sample):
@@ -25,7 +27,8 @@ class T5Handler:
         input_ids = inputs.input_ids
 
         with torch.no_grad():
-            outputs = self.model.generate(input_ids)
+            outputs = self.model.generate(input_ids,
+                    max_length=self.max_length)
             result = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         return result

@@ -26,8 +26,7 @@ def main():
             break
 
         result = model.run_inference(sample)
-        generated_text = result[0]["generated_text"]
-        print(generated_text)
+        print(result)
 
     print("")
     print("Done.")
