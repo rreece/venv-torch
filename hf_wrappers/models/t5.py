@@ -25,6 +25,8 @@ class T5Handler:
             self.device = torch.device("cuda")
             self.model.to(self.device)
 
+        self.model.eval()
+
     def run_inference(self, sample):
         translate_en_fr = "translate English to French: "
         prepended_sample = translate_en_fr + sample
@@ -32,11 +34,10 @@ class T5Handler:
         input_ids = inputs.input_ids
 
         if self.device is not None:
-            input_ids.to(self.device)
+            input_ids = input_ids.to(self.device)
 
         with torch.no_grad():
             outputs = self.model.generate(input_ids,
                     max_length=self.max_length)
             result = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        return result
+            return result

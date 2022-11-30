@@ -26,11 +26,13 @@ class GPT2Handler:
             self.device = torch.device("cuda")
             self.model.to(self.device)
 
+        self.model.eval()
+
     def run_inference(self, sample):
         inputs = self.tokenizer([sample], return_tensors="pt")
 
         if self.device is not None:
-            inputs.to(self.device)
+            inputs = inputs.to(self.device)
 
         with torch.no_grad():
             outputs = self.model.generate(**inputs,
