@@ -17,3 +17,12 @@ source setup.sh
 cd tests
 python test_hf_bert_sentiment.py
 ```
+
+
+## Run the tests
+
+Just call
+
+```
+pytest
+```
