@@ -25,6 +25,7 @@ def main():
             break
 
         result = model.run_inference(sample)
+        print("")
         print(result)
 
     print("")
