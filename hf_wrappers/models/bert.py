@@ -9,22 +9,20 @@ https://huggingface.co/docs/transformers/model_doc/bert#transformers.BertForSequ
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 
+from hf_wrappers.models.handler import BaseHandler
 
-class BertHandler:
+
+class BertHandler(BaseHandler):
 
     def __init__(self, model_name=None):
         if model_name is None:
-#            self.model_name = "textattack/bert-base-uncased-yelp-polarity"
-            self.model_name = "textattack/bert-base-uncased-SST-2"
+            model_name = "textattack/bert-base-uncased-SST-2"
+        super().__init__(model_name=model_name)
+
+    def setup_model(self, model_name=None):
+        self.model_name = model_name
         self.tokenizer = BertTokenizer.from_pretrained(self.model_name)
         self.model = BertForSequenceClassification.from_pretrained(self.model_name)
-
-        self.device = None
-        if torch.cuda.is_available():
-            self.device = torch.device("cuda")
-            self.model.to(self.device)
-
-        self.model.eval()
 
     def run_inference(self, sample):
         inputs = self.tokenizer(sample, return_tensors="pt")

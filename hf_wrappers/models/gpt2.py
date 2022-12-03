@@ -10,23 +10,22 @@ https://huggingface.co/blog/how-to-generate
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
+from hf_wrappers.models.handler import BaseHandler
 
-class GPT2Handler:
+
+class GPT2Handler(BaseHandler):
 
     def __init__(self, model_name=None):
         if model_name is None:
-            self.model_name = "gpt2-large"
+            model_name = "gpt2-large"
+        super().__init__(model_name=model_name)
+
+    def setup_model(self, model_name):
+        self.model_name = model_name
         self.tokenizer = GPT2Tokenizer.from_pretrained(self.model_name)
         self.model = GPT2LMHeadModel.from_pretrained(self.model_name,
                         pad_token_id=self.tokenizer.eos_token_id)
         self.max_new_tokens = 90
-
-        self.device = None
-        if torch.cuda.is_available():
-            self.device = torch.device("cuda")
-            self.model.to(self.device)
-
-        self.model.eval()
 
     def run_inference(self, sample):
         inputs = self.tokenizer([sample], return_tensors="pt")

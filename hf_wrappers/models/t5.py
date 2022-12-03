@@ -9,23 +9,22 @@ https://huggingface.co/docs/transformers/model_doc/t5
 import torch
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 
+from hf_wrappers.models.handler import BaseHandler
 
-class T5Handler:
+
+class T5Handler(BaseHandler):
 
     def __init__(self, model_name=None):
         if model_name is None:
-            self.model_name = "t5-base"
+            model_name = "t5-base"
+        super().__init__(model_name=model_name)
+
+    def setup_model(self, model_name=None):
+        self.model_name = model_name
         self.max_length = 512
         self.tokenizer = T5Tokenizer.from_pretrained(self.model_name,
                 model_max_length=self.max_length)
         self.model = T5ForConditionalGeneration.from_pretrained(self.model_name)
-
-        self.device = None
-        if torch.cuda.is_available():
-            self.device = torch.device("cuda")
-            self.model.to(self.device)
-
-        self.model.eval()
 
     def run_inference(self, sample):
         translate_en_fr = "translate English to French: "
