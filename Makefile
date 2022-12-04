@@ -1,6 +1,9 @@
 
-all:
-	@echo Run source setup.sh
+all: venv
+	@echo "\nTo start, please run\nsource setup.sh"
+
+venv:
+	bash setup.sh
 
 clean:
 	find . -maxdepth 1 -type d -name venv -exec rm -rfv {} +
