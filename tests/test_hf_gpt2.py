@@ -7,14 +7,14 @@ from hf_wrappers.models.gpt2 import GPT2Handler
 
 
 def test_inference():
-    model = GPT2Handler()
+    gpt2 = GPT2Handler()
     sample = "That dog is cute."
-    result = model.run_inference(sample)
+    result = gpt2.run_inference(sample)
     assert len(result) > 25
 
 
 def main():
-    model = GPT2Handler()
+    gpt2 = GPT2Handler()
     
     print("Give a sample of text to prompt GPT2. (q to quit)")
     
@@ -24,7 +24,7 @@ def main():
         if sample.lower() == "q":
             break
 
-        result = model.run_inference(sample)
+        result = gpt2.run_inference(sample)
         print("")
         print(result)
 
