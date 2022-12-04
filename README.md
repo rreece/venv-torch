@@ -1,5 +1,7 @@
 # venv-torch
 
+![venv-torch](https://github.com/rreece/venv-torch/actions/workflows/python-app.yml/badge.svg)
+
 An example of setting up a python virtualenv that has pytorch
 installed.
 
