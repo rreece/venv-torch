@@ -33,3 +33,8 @@ python test_hf_bert_sentiment.py
 ```
 pytest
 ```
+
+## Author
+
+Ryan Reece ([@rreece](https://github.com/rreece))         
+Created: November 4, 2022
