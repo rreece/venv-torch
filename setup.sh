@@ -33,12 +33,14 @@ add_to_python_path()
 # setup virtualenv
 #-----------------------------------------------------------------------------
 
-if [ -f venv/bin/activate ]; then
-    source venv/bin/activate
+venv_name=".venv"
+
+if [ -f ${venv_name}/bin/activate ]; then
+    source ${venv_name}/bin/activate
 else
-    echo "  Setting up virtualenv venv"
-    python -m venv venv
-    source venv/bin/activate
+    echo "  Setting up virtualenv ${venv_name}"
+    python -m venv ${venv_name}
+    source ${venv_name}/bin/activate
     pip install -r requirements.txt
 fi
 
