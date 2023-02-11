@@ -1,5 +1,8 @@
+# Makefile for venv-torch
 
 VENV_NAME := ".venv"
+
+.PHONY: all clean realclean test testclean
 
 all: $(VENV_NAME)
 	@echo "\nTo start, please run\nsource setup.sh"
