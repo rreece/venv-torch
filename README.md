@@ -23,6 +23,8 @@ source setup.sh
 
 ## Run sentiment scoring of your input texts
 
+This test can be run interactively:
+
 ```
 cd tests
 python test_hf_bert_sentiment.py
@@ -30,6 +32,8 @@ python test_hf_bert_sentiment.py
 
 
 ## Run the tests
+
+Run all the tests:
 
 ```
 pytest
