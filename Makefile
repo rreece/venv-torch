@@ -19,7 +19,7 @@ realclean: clean
 	find . -maxdepth 1 -type d -name $(VENV_NAME) -exec rm -rfv {} +
 
 test:
-	pytest
+	cd tests && pytest && cd ..
 
 testclean:
 	find . -type d -name .pytest_cache -exec rm -rfv {} +

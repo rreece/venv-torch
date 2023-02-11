@@ -1,6 +1,5 @@
-#
-# Script for installing or activating a virtualenv
-#
+# setup.sh
+# Script for installing and/or activating a virtualenv
 
 
 #-----------------------------------------------------------------------------
