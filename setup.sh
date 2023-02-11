@@ -40,6 +40,7 @@ else
     echo "  Setting up virtualenv ${venv_name}"
     python -m venv ${venv_name}
     source ${venv_name}/bin/activate
+    pip install --upgrade pip
     pip install -r requirements.txt
 fi
 
