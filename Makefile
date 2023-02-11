@@ -1,6 +1,6 @@
 # Makefile for venv-torch
 
-VENV_NAME := ".venv"
+VENV_NAME := .venv
 
 .PHONY: all clean realclean test testclean
 
