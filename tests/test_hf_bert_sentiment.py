@@ -4,7 +4,6 @@ Test Huggingface pretrained BERT.
 
 import os
 import shutil
-import torch
 
 from hf_wrappers.models.bert import BertHandler
 
