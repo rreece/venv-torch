@@ -4,7 +4,6 @@ Script for saving a checkpoint of a HuggingFace model.
 
 
 import os
-import torch
 
 MODEL_NAME = "textattack/bert-base-uncased-SST-2"
 from transformers import BertForSequenceClassification as Model
