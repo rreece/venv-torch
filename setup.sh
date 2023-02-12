@@ -51,6 +51,6 @@ fi
 
 add_to_path /usr/local/cuda-11.8/bin
 add_to_ld_library_path /usr/local/cuda-11.8/lib64
-add_to_python_path ${path_of_this_dir}
+add_to_python_path ${path_of_this_dir}/python
 
 echo "  Done."
