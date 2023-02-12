@@ -11,8 +11,8 @@ $(VENV_NAME):
 	bash setup.sh
 
 clean: testclean
-	find . -type f -name '*.py[co]' -exec rm -fv {} +
-	find . -type d -name __pycache__  -exec rm -rfv {} +
+	find python -type f -name '*.py[co]' -exec rm -fv {} +
+	find python -type d -name __pycache__  -exec rm -rfv {} +
 
 realclean: clean
 	find . -maxdepth 1 -type d -name $(VENV_NAME) -exec rm -rfv {} +
@@ -21,4 +21,6 @@ test:
 	cd tests && pytest && cd ..
 
 testclean:
+	find tests -type f -name '*.py[co]' -exec rm -fv {} +
+	find tests -type d -name __pycache__  -exec rm -rfv {} +
 	find tests -type d -name .pytest_cache -exec rm -rfv {} +
