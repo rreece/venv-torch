@@ -4,7 +4,9 @@ VENV_NAME := .venv
 
 .PHONY: all clean realclean test testclean lint
 
-all: $(VENV_NAME)
+all: lint install
+
+install: $(VENV_NAME)
 	@echo "\nTo start, please run\nsource setup.sh\n"
 
 $(VENV_NAME):
