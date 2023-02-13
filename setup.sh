@@ -49,8 +49,13 @@ fi
 # setup paths
 #-----------------------------------------------------------------------------
 
-add_to_path /usr/local/cuda-11.8/bin
-add_to_ld_library_path /usr/local/cuda-11.8/lib64
+add_to_path ${path_of_this_dir}/scripts
 add_to_python_path ${path_of_this_dir}/python
+
+## cuda
+#if [ -d /usr/local/cuda ]; then
+#    add_to_ld_library_path /usr/local/cuda/lib64
+#    add_to_ld_library_path /usr/local/cuda/extras/CUPTI/lib64
+#fi
 
 echo "  Done."
