@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Script for saving a checkpoint of a HuggingFace model.
 """
@@ -5,9 +6,18 @@ Script for saving a checkpoint of a HuggingFace model.
 
 import os
 
-MODEL_NAME = "textattack/bert-base-uncased-SST-2"
-from transformers import BertForSequenceClassification as Model
+
+#MODEL_NAME = "textattack/bert-base-uncased-SST-2"
+#from transformers import BertTokenizer as Tokenizer
+#from transformers import BertForSequenceClassifications as Model
+
+MODEL_NAME = "bert-base-uncased"
 from transformers import BertTokenizer as Tokenizer
+from transformers import BertForMaskedLM as Model
+
+#MODEL_NAME = "microsoft/resnet-50"
+#from transformers import AutoFeatureExtractor as Tokenizer
+#from transformers import ResNetForImageClassification as Model
 
 
 def save_checkpoint(model, tokenizer, output_dir):
