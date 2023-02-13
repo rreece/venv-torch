@@ -24,3 +24,6 @@ testclean:
 	find tests -type f -name '*.py[co]' -exec rm -fv {} +
 	find tests -type d -name __pycache__  -exec rm -rfv {} +
 	find tests -type d -name .pytest_cache -exec rm -rfv {} +
+
+lint:
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
