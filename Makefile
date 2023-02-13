@@ -2,7 +2,7 @@
 
 VENV_NAME := .venv
 
-.PHONY: all clean realclean test testclean lint
+.PHONY: all install clean realclean test testclean lint
 
 all: lint install
 
