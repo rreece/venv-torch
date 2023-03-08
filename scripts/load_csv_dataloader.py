@@ -17,39 +17,48 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
 
 
+# DEBUG
+#torch.set_printoptions(profile="full")
+
+
 class SentimentDataset(Dataset):
-    def __init__(self, csv_fn):
+    def __init__(self, csv_fn,
+            tokenizer=None,
+            max_length=512,
+            return_attention_mask=True):
         # TODO: handle multiple files
         if isinstance(csv_fn, list):
             csv_fn = csv_fn[0]
         assert os.path.isfile(csv_fn)
         self.df = pd.read_csv(csv_fn)
-        self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+        self.max_length = max_length
+        self.tokenizer = tokenizer
+        self.return_attention_mask = return_attention_mask
 
-        # Convert sentiment labels to numeric values
-#        self.df['sentiment'] = self.df['sentiment'].map({'positive': 1, 'negative': 0})
-        
     def __len__(self):
         return len(self.df)
-    
+
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
         sample = self.df.iloc[idx]["content"]
-        x = self.tokenizer(sample,
-#                max_length=self.max_length,
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt",
-                return_token_type_ids=False,
-                return_attention_mask=False,
-                )
-        print("DEBUG: keys = ", x.keys(), flush=True)
-        input_ids = x["input_ids"]
-        print("DEBUG: input_ids = ", input_ids, flush=True)
-#        help(self.tokenizer)
-        sentiment = self.df.iloc[idx]["label"]
-        return {"sample": sample, "sentiment": sentiment}
+        datum = dict()
+        if self.tokenizer:
+            tokenizer_outputs = self.tokenizer(sample,
+                    max_length=self.max_length,
+                    padding="max_length",
+                    truncation=True,
+                    return_tensors="pt",
+                    return_token_type_ids=False,
+                    return_attention_mask=self.return_attention_mask,
+                    )
+            datum["input_ids"] = tokenizer_outputs["input_ids"].squeeze()
+            if self.return_attention_mask:
+                datum["attention_mask"] = tokenizer_outputs["attention_mask"].squeeze()
+        else:
+            datum["sample"] = sample
+        datum["label"] = self.df.iloc[idx]["label"]
+        return datum
 
 
 
@@ -64,23 +73,23 @@ def get_dataloader(fn):
     """
     csv to DataLoader
     """
-    ds = SentimentDataset(fn)
-    loader = DataLoader(ds,
-                batch_size=2,
-                num_workers=1,
-#                pin_memory=True,
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
+#    tokenizer = None
+    ds = SentimentDataset(fn, tokenizer=tokenizer)
+    dataloader = DataLoader(ds,
+                batch_size=1,
+                num_workers=0,
 #                shuffle=True,
                 )
-    return loader
+    return dataloader
 
 
 def main():
     args = parse_args()
     infiles = args.infiles
-    print("DEBUG: ", infiles, flush=True)
-    loader = get_dataloader(infiles)
-    print(loader)
-    for x in loader:
+    dataloader = get_dataloader(infiles)
+    print(dataloader)
+    for x in dataloader:
         print(x)
         assert False
     print("Done.")
