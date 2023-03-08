@@ -11,44 +11,78 @@ https://wandb.ai/srishti-gureja-wandb/posts/How-To-Eliminate-the-Data-Processing
 
 import argparse
 import os
+import pandas as pd
+import torch
+from torch.utils.data import Dataset, DataLoader
+from transformers import AutoTokenizer
 
-from datasets import load_dataset
+
+class SentimentDataset(Dataset):
+    def __init__(self, csv_fn):
+        # TODO: handle multiple files
+        if isinstance(csv_fn, list):
+            csv_fn = csv_fn[0]
+        assert os.path.isfile(csv_fn)
+        self.df = pd.read_csv(csv_fn)
+        self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+
+        # Convert sentiment labels to numeric values
+#        self.df['sentiment'] = self.df['sentiment'].map({'positive': 1, 'negative': 0})
+        
+    def __len__(self):
+        return len(self.df)
+    
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        sample = self.df.iloc[idx]["content"]
+        x = self.tokenizer(sample,
+#                max_length=self.max_length,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt",
+                return_token_type_ids=False,
+                return_attention_mask=False,
+                )
+        print("DEBUG: keys = ", x.keys(), flush=True)
+        input_ids = x["input_ids"]
+        print("DEBUG: input_ids = ", input_ids, flush=True)
+#        help(self.tokenizer)
+        sentiment = self.df.iloc[idx]["label"]
+        return {"sample": sample, "sentiment": sentiment}
+
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--data',
-            help='Path to dataset directory.')
+    parser.add_argument('infiles',  default=None, nargs='+',
+            help='Input csv files.')
     return parser.parse_args()
 
 
-def load_csv_dataset(data_files):
-    for k, v in data_files.items():
-        assert os.path.exists(v)
-        assert os.path.isfile(v)
-    ds = load_dataset("csv", data_files=data_files)
-    return ds
-
-
-def do_work(ds):
+def get_dataloader(fn):
     """
-    TODO
+    csv to DataLoader
     """
-    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-    dataset = dataset.map(lambda e: tokenizer(e['sentence1']), batched=True)
-    dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
+    ds = SentimentDataset(fn)
+    loader = DataLoader(ds,
+                batch_size=2,
+                num_workers=1,
+#                pin_memory=True,
+#                shuffle=True,
+                )
+    return loader
 
 
 def main():
     args = parse_args()
-    data_path = args.data
-    data_files = {
-        "train": os.path.join(data_path, "train.csv"),
-        "test": os.path.join(data_path, "test.csv"),
-    }
-    ds = load_csv_dataset(data_files)
-    print(ds)
+    infiles = args.infiles
+    print("DEBUG: ", infiles, flush=True)
+    loader = get_dataloader(infiles)
+    print(loader)
+    for x in loader:
+        print(x)
+        assert False
     print("Done.")
 
 
