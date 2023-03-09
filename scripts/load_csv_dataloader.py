@@ -15,17 +15,30 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
+from tqdm import tqdm
+
 
 
 # DEBUG
 #torch.set_printoptions(profile="full")
 
 
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('infiles',  nargs='+', default=None,
+            help='Input csv files.')
+    parser.add_argument('-m', '--max_batches', type=int, default=10,
+            help='Max batches to process.')
+    return parser.parse_args()
+
+
 class SentimentDataset(Dataset):
     def __init__(self, csv_fn,
             tokenizer=None,
             max_length=512,
-            return_attention_mask=True):
+            return_attention_mask=True,
+            return_token_type_ids=False):
         # TODO: handle multiple files
         if isinstance(csv_fn, list):
             csv_fn = csv_fn[0]
@@ -34,6 +47,7 @@ class SentimentDataset(Dataset):
         self.max_length = max_length
         self.tokenizer = tokenizer
         self.return_attention_mask = return_attention_mask
+        self.return_token_type_ids = return_token_type_ids
 
     def __len__(self):
         return len(self.df)
@@ -45,12 +59,13 @@ class SentimentDataset(Dataset):
         datum = dict()
         if self.tokenizer:
             tokenizer_outputs = self.tokenizer(sample,
+                    add_special_tokens=True,
                     max_length=self.max_length,
                     padding="max_length",
                     truncation=True,
                     return_tensors="pt",
-                    return_token_type_ids=False,
                     return_attention_mask=self.return_attention_mask,
+                    return_token_type_ids=self.return_token_type_ids,
                     )
             datum["input_ids"] = tokenizer_outputs["input_ids"].squeeze()
             if self.return_attention_mask:
@@ -59,14 +74,6 @@ class SentimentDataset(Dataset):
             datum["sample"] = sample
         datum["label"] = self.df.iloc[idx]["label"]
         return datum
-
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('infiles',  default=None, nargs='+',
-            help='Input csv files.')
-    return parser.parse_args()
 
 
 def get_dataloader(fn):
@@ -87,11 +94,13 @@ def get_dataloader(fn):
 def main():
     args = parse_args()
     infiles = args.infiles
+    max_batches = args.max_batches
     dataloader = get_dataloader(infiles)
     print(dataloader)
-    for x in dataloader:
-        print(x)
-        assert False
+    for i_batch, batch in tqdm(enumerate(dataloader), total=max_batches):
+        os.system("sleep 0.2s")
+        if i_batch + 1 >= max_batches:
+            break
     print("Done.")
 
 
