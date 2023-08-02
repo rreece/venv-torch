@@ -17,7 +17,7 @@ class GPT2Handler(BaseHandler):
 
     def __init__(self, model_name=None):
         if model_name is None:
-            model_name = "gpt2-large"
+            model_name = "gpt2-small"
         super().__init__(model_name=model_name)
 
     def setup_model(self, model_name):
