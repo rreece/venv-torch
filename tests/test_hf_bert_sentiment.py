@@ -27,7 +27,7 @@ def test_save_checkpoint():
 
     # check that it exists
     output_dir = checkpoint_name
-    output_model_file = os.path.join(output_dir, "pytorch_model.bin")
+    output_model_file = os.path.join(output_dir, "model.safetensors")
     output_config_file = os.path.join(output_dir, "config.json")
     output_vocab_file = os.path.join(output_dir, "vocab.txt")
     assert os.path.exists(output_model_file)
