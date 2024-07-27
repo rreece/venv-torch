@@ -155,7 +155,7 @@ tornado==6.4.1
 tqdm==4.66.3
 traitlets==5.9.0
 transformers==4.38.0
-triton==2.1.0
+triton==2.2.0
 trove-classifiers==2023.11.29
 typing_extensions==4.9.0
 uhi==0.3.3
