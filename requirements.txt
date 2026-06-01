@@ -50,7 +50,7 @@ jedi==0.18.0
 jeepney==0.8.0
 Jinja2==3.1.6
 jsonpointer==2.3
-jsonschema==4.17.0
+jsonschema==4.18.0
 jupyter==1.0.0
 jupyter-console==6.5.1
 jupyter-events==0.11.0
