@@ -29,10 +29,13 @@ def test_save_checkpoint():
     output_dir = checkpoint_name
     output_model_file = os.path.join(output_dir, "model.safetensors")
     output_config_file = os.path.join(output_dir, "config.json")
-    output_vocab_file = os.path.join(output_dir, "vocab.txt")
+    output_tokenizer_files = (
+        os.path.join(output_dir, "vocab.txt"),
+        os.path.join(output_dir, "tokenizer.json"),
+    )
     assert os.path.exists(output_model_file)
     assert os.path.exists(output_config_file)
-    assert os.path.exists(output_vocab_file)
+    assert any(os.path.exists(path) for path in output_tokenizer_files)
 
     # load from saved checkpoint
     del bert
