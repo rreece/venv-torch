@@ -1,4 +1,4 @@
-# Makefile for covariance_calculators
+# Makefile for venv-torch
 
 VENV_NAME := .venv
 CODE_DIRS := tests *.py
