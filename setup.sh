@@ -2,12 +2,18 @@
 # Script for installing and/or activating a virtualenv
 
 
-#-----------------------------------------------------------------------------
-# pre-setup helpers, don't touch
-#-----------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## pre-setup helpers, don't touch
+##-----------------------------------------------------------------------------
 
 path_of_this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 path_above_this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+
+add_to_python_path()
+{
+    export PYTHONPATH=$1${PYTHONPATH:+:${PYTHONPATH}}
+    echo "  Added $1 to your PYTHONPATH."
+}
 
 add_to_path()
 {
@@ -21,16 +27,10 @@ add_to_ld_library_path()
     echo "  Added $1 to your LD_LIBRARY_PATH."
 }
 
-add_to_python_path()
-{
-    export PYTHONPATH=$1${PYTHONPATH:+:${PYTHONPATH}}
-    echo "  Added $1 to your PYTHONPATH."
-}
 
-
-#-----------------------------------------------------------------------------
-# setup virtualenv
-#-----------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## setup virtualenv
+##-----------------------------------------------------------------------------
 
 venv_name=".venv"
 
@@ -42,6 +42,7 @@ else
     source ${venv_name}/bin/activate
     pip install --upgrade pip
     pip install -r requirements.txt
+#    git submodule update --init --recursive
 fi
 
 
@@ -49,8 +50,9 @@ fi
 # setup paths
 #-----------------------------------------------------------------------------
 
-add_to_path ${path_of_this_dir}/scripts
-add_to_python_path ${path_of_this_dir}/python
+#add_to_path ${path_of_this_dir}/scripts
+#add_to_python_path ${path_of_this_dir}/python
+add_to_python_path ${path_above_this_dir}
 
 ## cuda
 #if [ -d /usr/local/cuda ]; then
@@ -59,3 +61,5 @@ add_to_python_path ${path_of_this_dir}/python
 #fi
 
 echo "  Done."
+
+
