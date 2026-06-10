@@ -7,6 +7,6 @@ pytz==2025.2
 scipy==1.16.2
 sentencepiece
 six==1.17.0
-torch==2.8.0
+torch==2.12.0
 tqdm==4.67.3
 transformers
