@@ -1,7 +1,7 @@
 # Makefile for venv-torch
 
 VENV_NAME := .venv
-CODE_DIRS := tests *.py
+CODE_DIRS := python scripts tests
 
 .PHONY: all install clean realclean test testclean lint blackcheck black submodules
 
