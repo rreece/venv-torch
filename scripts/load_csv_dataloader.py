@@ -37,6 +37,8 @@ class SentimentDataset(Dataset):
     def __init__(self, csv_fn,
             tokenizer=None,
             max_length=512,
+            content_name="text",
+            label_name="label_text",
             return_attention_mask=True,
             return_token_type_ids=False):
         # TODO: handle multiple files
@@ -46,6 +48,8 @@ class SentimentDataset(Dataset):
         self.df = pd.read_csv(csv_fn)
         self.max_length = max_length
         self.tokenizer = tokenizer
+        self.content_name = content_name
+        self.label_name = label_name
         self.return_attention_mask = return_attention_mask
         self.return_token_type_ids = return_token_type_ids
 
@@ -55,7 +59,7 @@ class SentimentDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        sample = self.df.iloc[idx]["content"]
+        sample = self.df.iloc[idx][self.content_name]
         datum = dict()
         if self.tokenizer:
             tokenizer_outputs = self.tokenizer(sample,
@@ -72,7 +76,7 @@ class SentimentDataset(Dataset):
                 datum["attention_mask"] = tokenizer_outputs["attention_mask"].squeeze()
         else:
             datum["sample"] = sample
-        datum["label"] = self.df.iloc[idx]["label"]
+        datum["label"] = self.df.iloc[idx][self.label_name]
         return datum
 
 
