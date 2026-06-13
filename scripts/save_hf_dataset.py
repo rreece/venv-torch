@@ -17,7 +17,7 @@ from datasets import load_dataset, DatasetDict
 
 EOL = '\n'
 EOL_ENCODED = '\N{LATIN SMALL LETTER THORN}'
-MAX_WRITES = 10000
+CHUNK_SIZE = 10000
 
 
 def parse_args():
@@ -54,39 +54,15 @@ def save_dataset(ds, output_dir, filename="data", do_encode_eol=False):
     print("Saving to CSVs...")
     if do_encode_eol:
         ds = ds.map(encode_eol)
-    csv_buf = CsvBuffer(filename)
-    ds.to_csv(csv_buf, index=True, index_label="index")
+    n = len(ds)
+    for i, start in enumerate(range(0, n, CHUNK_SIZE)):
+        end = min(start + CHUNK_SIZE, n)
+        chunk_df = ds.select(range(start, end)).to_pandas()
+        chunk_df.index = range(start, end)
+        fn = "%s_%03i.csv" % (filename, i)
+        chunk_df.to_csv(fn, index=True, index_label="index")
     print("Saved: ", output_dir)
     os.chdir(cwd)
-
-
-class CsvBuffer():
-    def __init__(self, filename):
-        self.base_filename = filename
-        self.current_index = 0
-        self.current_filename = "%s_%03i.csv" % (self.base_filename, self.current_index)
-        self.current_file = open(self.current_filename, "wb")
-        self.n_writes = 0
-        self.max_writes = MAX_WRITES
-        self.headers = None  # TODO FIXME
-
-    def __del__(self):
-        self.close()
-
-    def close(self):
-        self.current_file.close()
-
-    def write(self, blah):
-        if self.n_writes >= self.max_writes:
-            self.current_file.close()
-            self.n_writes = 0
-            self.current_index += 1
-            self.current_filename = "%s_%03i.csv" % (self.base_filename, self.current_index)
-            self.current_file = open(self.current_filename, "wb")
-
-        out = self.current_file.write(blah)
-        self.n_writes += 1
-        return out
 
 
 def main():
