@@ -10,6 +10,7 @@ https://wandb.ai/srishti-gureja-wandb/posts/How-To-Eliminate-the-Data-Processing
 
 
 import argparse
+import bisect
 import os
 import pandas as pd
 import torch
@@ -18,10 +19,10 @@ from transformers import AutoTokenizer
 from tqdm import tqdm
 
 
-
 # DEBUG
-#torch.set_printoptions(profile="full")
-
+DEBUG = True
+if DEBUG:
+    torch.set_printoptions(profile="full")
 
 
 def parse_args():
@@ -41,11 +42,18 @@ class SentimentDataset(Dataset):
             label_name="label_text",
             return_attention_mask=True,
             return_token_type_ids=False):
-        # TODO: handle multiple files
         if isinstance(csv_fn, list):
-            csv_fn = csv_fn[0]
-        assert os.path.isfile(csv_fn)
-        self.df = pd.read_csv(csv_fn)
+            self._files = csv_fn
+        else:
+            self._files = [csv_fn]
+        for f in self._files:
+            assert os.path.isfile(f)
+        row_counts = [self._count_rows(f) for f in self._files]
+        self._cumulative = [0]
+        for n in row_counts:
+            self._cumulative.append(self._cumulative[-1] + n)
+        self._cached_file_idx = None
+        self._cached_df = None
         self.max_length = max_length
         self.tokenizer = tokenizer
         self.content_name = content_name
@@ -53,13 +61,27 @@ class SentimentDataset(Dataset):
         self.return_attention_mask = return_attention_mask
         self.return_token_type_ids = return_token_type_ids
 
+    @staticmethod
+    def _count_rows(path):
+        with open(path) as f:
+            return sum(1 for _ in f) - 1  # subtract header row
+
+    def _get_row(self, idx):
+        file_idx = bisect.bisect_right(self._cumulative, idx) - 1
+        if file_idx != self._cached_file_idx:
+            self._cached_df = pd.read_csv(self._files[file_idx])
+            self._cached_file_idx = file_idx
+        local_idx = idx - self._cumulative[file_idx]
+        return self._cached_df.iloc[local_idx]
+
     def __len__(self):
-        return len(self.df)
+        return self._cumulative[-1]
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        sample = self.df.iloc[idx][self.content_name]
+        row = self._get_row(idx)
+        sample = row[self.content_name]
         datum = dict()
         if self.tokenizer:
             tokenizer_outputs = self.tokenizer(sample,
@@ -76,13 +98,13 @@ class SentimentDataset(Dataset):
                 datum["attention_mask"] = tokenizer_outputs["attention_mask"].squeeze()
         else:
             datum["sample"] = sample
-        datum["label"] = self.df.iloc[idx][self.label_name]
+        datum["label"] = row[self.label_name]
         return datum
 
 
 def get_dataloader(fn):
     """
-    csv to DataLoader
+    Returns a DataLoader
     """
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
     ds = SentimentDataset(fn, tokenizer=tokenizer)
@@ -101,10 +123,11 @@ def main():
     dataloader = get_dataloader(infiles)
     print(dataloader)
     for i_batch, batch in tqdm(enumerate(dataloader), total=max_batches):
-        print("DEBUG: batch = ", batch)
-        os.system("sleep 0.2s")
         if i_batch + 1 >= max_batches:
             break
+        if DEBUG:
+            print("DEBUG: batch = ", batch)
+        os.system("sleep 0.2s")
     print("Done.")
 
 
