@@ -11,6 +11,7 @@ https://wandb.ai/srishti-gureja-wandb/posts/How-To-Eliminate-the-Data-Processing
 
 import argparse
 import bisect
+from itertools import islice
 import os
 import pandas as pd
 import torch
@@ -122,9 +123,7 @@ def main():
     max_batches = args.max_batches
     dataloader = get_dataloader(infiles)
     print(dataloader)
-    for i_batch, batch in tqdm(enumerate(dataloader), total=max_batches):
-        if i_batch + 1 >= max_batches:
-            break
+    for i_batch, batch in tqdm(islice(enumerate(dataloader), max_batches), total=max_batches):
         if DEBUG:
             print("DEBUG: batch = ", batch)
         os.system("sleep 0.2s")
