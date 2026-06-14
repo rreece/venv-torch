@@ -85,12 +85,11 @@ def get_dataloader(fn):
     csv to DataLoader
     """
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
-#    tokenizer = None
     ds = SentimentDataset(fn, tokenizer=tokenizer)
     dataloader = DataLoader(ds,
-                batch_size=1,
+                batch_size=4,
                 num_workers=0,
-#                shuffle=True,
+                shuffle=False,
                 )
     return dataloader
 
@@ -102,6 +101,7 @@ def main():
     dataloader = get_dataloader(infiles)
     print(dataloader)
     for i_batch, batch in tqdm(enumerate(dataloader), total=max_batches):
+        print("DEBUG: batch = ", batch)
         os.system("sleep 0.2s")
         if i_batch + 1 >= max_batches:
             break
