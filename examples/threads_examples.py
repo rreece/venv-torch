@@ -4,20 +4,9 @@ Example of using threading
 """
 
 
-import argparse
 import queue
 import threading
 import time
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-#    parser.add_argument('infiles',  nargs='+', default=None,
-#            help='Input csv files.')
-#    parser.add_argument('-m', '--max_batches', type=int, default=10,
-#            help='Max batches to process.')
-    return parser.parse_args()
-
 
 
 def run_broken():
@@ -80,10 +69,9 @@ def run_producer_consumer():
 
 
 def main():
-    args = parse_args()
     run_broken()
     run_fixed()
-    print()
+    print("")
     run_producer_consumer()
     print("Done.")
 
