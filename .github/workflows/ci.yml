@@ -40,6 +40,8 @@ jobs:
       run: |
         source setup.sh
     - name: Test with pytest
+      env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
         source setup.sh
         pytest -s tests
