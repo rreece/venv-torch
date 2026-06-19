@@ -9,6 +9,11 @@ Example pytorch training loop
 -   Prints the loss each epoch
 
 Bonus: wrap the training in a function, and call model.train() and model.eval() at the right times.
+
+See also:
+
+-   https://docs.pytorch.org/tutorials/beginner/introyt/trainingyt.html
+-   https://sebastianraschka.com/faq/docs/training-loop-in-pytorch.html
 """
 
 
