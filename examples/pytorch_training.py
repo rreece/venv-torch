@@ -86,15 +86,19 @@ def main():
     hidden_dim = 32
     output_dim = 4
     p_drop = 0.1
+    learning_rate = 0.01
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     model = ExampleModel(input_dim, hidden_dim, output_dim, p_drop)
     model.to(device)
-    dataloader = make_dataloader(n_samples=256, input_dim=input_dim, output_dim=output_dim, batch_size=batch_size)
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-    n_epochs = 5
+    n_samples = 256
+    dataloader = make_dataloader(n_samples=n_samples, input_dim=input_dim, output_dim=output_dim, batch_size=batch_size)
+
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+
+    n_epochs = 10
     for i_epoch in range(n_epochs):
         epoch_loss = train_one_epoch(device, model, dataloader, loss_fn, optimizer)
         print(f"Epoch [{i_epoch+1}/{n_epochs}], Loss: {epoch_loss:.4f}")
