@@ -2,7 +2,8 @@
 """
 Example pytorch training loop
 
--   Creates fake data with torch.randn for inputs and torch.randint for class labels
+-   Creates structured toy data: Gaussian blobs with sparse informative features
+    (only n_informative of the input_dim features carry signal; the rest are noise)
 -   Uses CrossEntropyLoss
 -   Uses AdamW optimizer
 -   Runs for some number of epochs
@@ -78,9 +79,29 @@ def train_one_epoch(device, model, dataloader, loss_fn, optimizer):
     return epoch_loss
 
 
-def make_dataloader(n_samples, input_dim, output_dim, batch_size):
-    features = torch.randn(n_samples, input_dim)
+def make_dataloader(n_samples, input_dim, output_dim, batch_size, n_informative=4):
+    """
+    Structured toy dataset: Gaussian blobs with sparse informative features.
+
+    Each class is a cluster centered at a random point in an n_informative-dimensional
+    subspace. The remaining (input_dim - n_informative) features are pure noise.
+    """
+    assert n_informative <= input_dim
+
+    # Random cluster centers only in the informative subspace
+    centers = torch.randn(output_dim, n_informative) * 3.0
+
+    # Sample labels uniformly, then generate features
     labels = torch.randint(0, output_dim, (n_samples,))
+    features = torch.randn(n_samples, input_dim)  # all noise to start
+
+    # Overwrite the informative features with cluster signal + noise
+    features[:, :n_informative] = centers[labels] + torch.randn(n_samples, n_informative)
+
+    # Randomly permute feature columns so informative features aren't always first
+    perm = torch.randperm(input_dim)
+    features = features[:, perm]
+
     ds = TensorDataset(features, labels)
     return DataLoader(ds, batch_size=batch_size, shuffle=True)
 
@@ -90,7 +111,7 @@ def main():
     input_dim = 16
     hidden_dim = 32
     output_dim = 4
-    p_drop = 0.05
+    p_drop = 0.1
     learning_rate = 0.005
     weight_decay = 0.01
 
