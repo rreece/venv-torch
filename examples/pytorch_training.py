@@ -160,7 +160,7 @@ def main():
     model = ExampleModel(input_dim, hidden_dim, output_dim, p_drop)
     model.to(device)
 
-    centers, perm = make_dataset_config(output_dim, input_dim, n_informative, cluster_sep=3.0)
+    centers, perm = make_dataset_config(output_dim, input_dim, n_informative, cluster_sep=3.3)
     train_loader = make_dataloader(n_samples=1024, input_dim=input_dim, output_dim=output_dim, batch_size=batch_size, centers=centers, perm=perm, n_informative=n_informative)
     val_loader   = make_dataloader(n_samples=256,  input_dim=input_dim, output_dim=output_dim, batch_size=batch_size, centers=centers, perm=perm, n_informative=n_informative)
 
