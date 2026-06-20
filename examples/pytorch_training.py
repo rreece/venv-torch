@@ -4,7 +4,7 @@ Example pytorch training loop
 
 -   Creates fake data with torch.randn for inputs and torch.randint for class labels
 -   Uses CrossEntropyLoss
--   Uses SGD optimizer
+-   Uses AdamW optimizer
 -   Runs for some number of epochs
 -   Prints the loss each epoch
 
@@ -31,13 +31,18 @@ class ExampleModel(nn.Module):
 
         self.layer1 = nn.Linear(input_dim, hidden_dim)
         self.drop1 = nn.Dropout(p=p_drop)
-        self.layer2 = nn.Linear(hidden_dim, output_dim)
+        self.layer2 = nn.Linear(hidden_dim, hidden_dim)
+        self.drop2 = nn.Dropout(p=p_drop)
+        self.layer3 = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
         x = self.layer1(x)
         x = F.relu(x)
         x = self.drop1(x)
         x = self.layer2(x)
+        x = F.relu(x)
+        x = self.drop2(x)
+        x = self.layer3(x)
         return x
 
 
@@ -85,10 +90,13 @@ def main():
     input_dim = 16
     hidden_dim = 32
     output_dim = 4
-    p_drop = 0.1
-    learning_rate = 0.01
+    p_drop = 0.05
+    learning_rate = 0.005
+    weight_decay = 0.01
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    print("Device:", device)
+
     model = ExampleModel(input_dim, hidden_dim, output_dim, p_drop)
     model.to(device)
 
@@ -96,12 +104,12 @@ def main():
     dataloader = make_dataloader(n_samples=n_samples, input_dim=input_dim, output_dim=output_dim, batch_size=batch_size)
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-    n_epochs = 10
+    n_epochs = 20
     for i_epoch in range(n_epochs):
         epoch_loss = train_one_epoch(device, model, dataloader, loss_fn, optimizer)
-        print(f"Epoch [{i_epoch+1}/{n_epochs}], Loss: {epoch_loss:.4f}")
+        print(f"Epoch: {i_epoch+1:2d}/{n_epochs}, Loss: {epoch_loss:.4f}")
 
 
 if __name__ == "__main__":
