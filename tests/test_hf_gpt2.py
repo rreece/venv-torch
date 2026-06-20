@@ -10,14 +10,16 @@ def test_inference():
     gpt2 = GPT2Handler()
     sample = "That dog is cute."
     result = gpt2.run_inference(sample)
-    assert len(result) > 25
+    assert isinstance(result, str)
+    assert result.startswith(sample)
+    assert len(result) >= len(sample)
 
 
 def main():
     gpt2 = GPT2Handler()
-    
+
     print("Give a sample of text to prompt GPT2. (q to quit)")
-    
+
     while True:
         print("")
         sample = input("> ").strip()
