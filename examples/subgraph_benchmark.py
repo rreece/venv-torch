@@ -6,10 +6,14 @@ Benchmark for the induced subgraph isomorphism solver in subgraph.py.
 Each case generates random undirected graphs from a fixed seed, so runs are
 reproducible and every configuration is timed on the same instances. In a
 "planted" case, H is an induced subgraph of G on randomly chosen vertices, so a
-match always exists. In a "random" case, H is an independent random graph.
+match always exists, induced or not. In a "random" case, H is an independent
+random graph.
 
-Every result is checked: a returned mapping must pass verify_mapping, and all
-configurations must agree on whether a match exists. Search counters ("nodes"
+Configurations named "fc..." solve induced subgraph isomorphism, and those
+named "mono..." solve non-induced subgraph isomorphism (monomorphism); see
+subgraph.py. Every result is checked: a returned mapping must pass
+verify_mapping for its version of the problem, and configurations solving the
+same version must agree on whether a match exists. Search counters ("nodes"
 and "checks") are reported alongside time, since time alone varies a lot
 between instances.
 
@@ -33,6 +37,10 @@ from subgraph import find_subgraph, verify_mapping
 # Solver configurations: name -> keyword arguments for find_subgraph
 CONFIGS = {
     "fc": {},
+    "fc+nbr": {"refine": "neighbors"},
+    "fc+full": {"refine": "full"},
+    "mono": {"induced": False},
+    "mono+nbr": {"induced": False, "refine": "neighbors"},
 }
 
 # Benchmark cases: (name, n, m, edge probability, planted)
@@ -99,7 +107,8 @@ def run_one(G, H, kwargs, timeout):
         signal.alarm(0)
     seconds = time.perf_counter() - start
     if mapping is not None:
-        assert verify_mapping(G, H, mapping), "invalid mapping returned"
+        induced = kwargs.get("induced", True)
+        assert verify_mapping(G, H, mapping, induced=induced), "invalid mapping returned"
     return mapping is not None, seconds, stats
 
 
@@ -128,8 +137,10 @@ def main():
         rng = random.Random(f"{args.seed}:{case_name}")
         instances = make_instances(n, m, p, planted, args.trials, rng)
 
-        answers = {}  # instance index -> found, from the first config that finished it
+        # (instance index, induced) -> found, from the first config that finished it
+        answers = {}
         for config in configs:
+            induced = CONFIGS[config].get("induced", True)
             times, nodes, checks = [], [], []
             found_count = timeouts = 0
             for i, (G, H) in enumerate(instances):
@@ -141,10 +152,11 @@ def main():
                     timeouts += 1
                     continue
                 found_count += found
-                if i in answers:
-                    assert answers[i] == found, f"{case_name}: configs disagree on instance {i}"
+                key = (i, induced)
+                if key in answers:
+                    assert answers[key] == found, f"{case_name}: configs disagree on instance {i}"
                 else:
-                    answers[i] = found
+                    answers[key] = found
 
             print(f"{case_name:28s} {config:12s} {statistics.mean(times) * 1e3:10.1f} "
                   f"{statistics.median(times) * 1e3:10.1f} {statistics.mean(nodes):12.0f} "
