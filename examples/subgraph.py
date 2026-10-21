@@ -1,12 +1,16 @@
 """
 subgraph.py
 
-Induced subgraph isomorphism by backtracking search. Candidates are filtered
-by degree as in Ullmann (1976), H vertices are visited in a fixed order of
-fewest candidates first (roughly Ullmann's decreasing-degree order), and
-forward checking against the current partial mapping (Haralick & Elliott 1980)
-prunes branches where some unmapped vertex has no candidate left. Ullmann's
-refinement procedure and dynamic fail-first ordering are not implemented.
+Induced subgraph isomorphism by backtracking search with forward checking,
+following Haralick & Elliott (1980). Each unmapped H vertex keeps a domain of
+candidate G vertices, stored as a bitset. Initial domains use the degree filter
+of Ullmann (1976). After each assignment, forward checking removes the
+candidates that are inconsistent with it, and backtracks if any domain becomes
+empty, so every remaining candidate is consistent with the whole partial
+mapping. The next H vertex is chosen dynamically as the one with the fewest
+candidates left (fail first), with ties going to the vertex of highest degree,
+as in Ullmann's ordering. Ullmann's refinement procedure, which is a full
+look-ahead, is not implemented.
 
 References:
 
@@ -17,7 +21,7 @@ References:
 """
 
 
-def find_subgraph(G, H):
+def find_subgraph(G, H, stats=None):
     """
     Finds an isomorphic mapping from graph H to an induced subgraph of graph G using
     backtracking with degree-based pruning and forward checking. See the module
@@ -28,6 +32,8 @@ def find_subgraph(G, H):
             Should be an n x n matrix where G[i][j] == 1 if there is an edge from vertex i to j, else 0.
         H (list of list of int): The adjacency matrix of the pattern graph H.
             Should be an m x m matrix where H[i][j] == 1 if there is an edge from vertex i to j, else 0.
+        stats (dict, optional): If given, search counters are accumulated into it:
+            "nodes" (search tree nodes visited) and "checks" (forward checks of candidate assignments).
 
     Returns:
         dict or None: A dictionary mapping each vertex index of H (0 to m-1) to a vertex index of G (0 to n-1)
@@ -43,98 +49,85 @@ def find_subgraph(G, H):
     n = len(G)
     m = len(H)
 
+    if stats is None:
+        stats = {}
+    stats.setdefault("nodes", 0)
+    stats.setdefault("checks", 0)
+
     if m > n:
         return None
 
-    # Vertex properties for pruning
-    G_degrees = [sum(G[i]) for i in range(n)]
-    H_degrees = [sum(H[i]) for i in range(m)]
+    # Bitsets (Python ints) of out- and in-neighbours of each G vertex, so that
+    # domains can be filtered bit-parallel as in Haralick & Elliott (1980)
+    G_out = [sum(1 << j for j in range(n) if G[i][j]) for i in range(n)]
+    G_in = [sum(1 << i for i in range(n) if G[i][j]) for j in range(n)]
 
-    # Create candidate sets: for each H vertex, which G vertices are possible
-    candidates = []
-    for h_v in range(m):
-        h_deg = H_degrees[h_v]
-        candidate_set = []
-        for g_v in range(n):
-            if G_degrees[g_v] >= h_deg:
-                candidate_set.append(g_v)
-        if not candidate_set:
+    # Initial domains: Ullmann's degree filter, plus matching self-loops
+    domains = {}
+    for h in range(m):
+        h_out = sum(H[h])
+        h_in = sum(H[i][h] for i in range(m))
+        domain = 0
+        for g in range(n):
+            if (G_out[g].bit_count() >= h_out and G_in[g].bit_count() >= h_in
+                    and G[g][g] == H[h][h]):
+                domain |= 1 << g
+        if not domain:
             return None  # No valid candidates for this H vertex
-        candidates.append(candidate_set)
+        domains[h] = domain
 
-    # Sort H vertices by number of candidates (ascending) for better pruning
-    h_vertices = list(range(m))
-    h_vertices.sort(key=lambda x: len(candidates[x]))
+    # Total (out + in) degree of each H vertex, for breaking ties in fail first
+    H_deg = [sum(H[u]) + sum(row[u] for row in H) for u in range(m)]
 
     mapping = {}
-    used_in_G = [False] * n
 
-    def is_valid_mapping(h_vertex, g_vertex):
+    def forward_check(h, g, future):
         """
-        Enhanced validity check with neighborhood comparison
+        Filter the domains of the future H vertices given the assignment h -> g.
+        Returns the filtered domains, or None if any domain becomes empty.
         """
-        # Self-loops must match
-        if H[h_vertex][h_vertex] != G[g_vertex][g_vertex]:
-            return False
-        for h_neighbor in range(m):
-            if h_neighbor in mapping:
-                g_neighbor = mapping[h_neighbor]
-                # Check both directions so directed graphs are handled
-                if H[h_vertex][h_neighbor] != G[g_vertex][g_neighbor]:
-                    return False
-                if H[h_neighbor][h_vertex] != G[g_neighbor][g_vertex]:
-                    return False
-        return True
+        filtered = {}
+        for u, domain in future.items():
+            domain &= ~(1 << g)  # injective
+            # Induced: edges and non-edges between u and h must both match
+            domain &= G_in[g] if H[u][h] else ~G_in[g]
+            domain &= G_out[g] if H[h][u] else ~G_out[g]
+            if not domain:
+                return None
+            filtered[u] = domain
+        return filtered
 
-    def forward_check(h_vertex, g_vertex):
+    def backtrack(domains):
         """
-        Check if mapping h_vertex to g_vertex would make future mappings impossible
+        Backtracking search. Every candidate left in domains is consistent
+        with the current partial mapping.
         """
-        # For each unmapped H vertex, check if it still has valid candidates
-        for h_v in h_vertices:
-            if h_v not in mapping and h_v != h_vertex:
-                has_valid_candidate = False
-                for g_v in candidates[h_v]:
-                    if g_v != g_vertex and not used_in_G[g_v]:
-                        # Check if this candidate is still valid given current mapping
-                        valid = True
-                        for h_mapped, g_mapped in mapping.items():
-                            if H[h_v][h_mapped] == 1 and G[g_v][g_mapped] == 0:
-                                valid = False
-                                break
-                        if valid and H[h_v][h_vertex] == 1 and G[g_v][g_vertex] == 0:
-                            valid = False
-                        if valid:
-                            has_valid_candidate = True
-                            break
-                if not has_valid_candidate:
-                    return False
-        return True
-
-    def backtrack(idx):
-        """
-        Backtracking search with pruning
-        """
-        if idx == m:
+        stats["nodes"] += 1
+        if not domains:
             return True
 
-        h_vertex = h_vertices[idx]
+        # Fail first: assign the H vertex with the fewest candidates left,
+        # breaking ties by highest degree as in Ullmann's ordering
+        h = min(domains, key=lambda u: (domains[u].bit_count(), -H_deg[u]))
+        future = {u: d for u, d in domains.items() if u != h}
 
-        for g_vertex in candidates[h_vertex]:
-            if not used_in_G[g_vertex] and is_valid_mapping(h_vertex, g_vertex):
-                if forward_check(h_vertex, g_vertex):
-                    mapping[h_vertex] = g_vertex
-                    used_in_G[g_vertex] = True
+        domain = domains[h]
+        while domain:
+            low = domain & -domain
+            domain ^= low
+            g = low.bit_length() - 1
 
-                    if backtrack(idx + 1):
-                        return True
-
-                    del mapping[h_vertex]
-                    used_in_G[g_vertex] = False
+            stats["checks"] += 1
+            filtered = forward_check(h, g, future)
+            if filtered is not None:
+                mapping[h] = g
+                if backtrack(filtered):
+                    return True
+                del mapping[h]
 
         return False
 
-    if backtrack(0):
+    if backtrack(domains):
         return mapping
     else:
         return None
