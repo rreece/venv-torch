@@ -293,41 +293,70 @@ def is_symmetric(matrix):
     return True
 
 
+def from_edges(n, edges):
+    """
+    Returns the adjacency matrix of an undirected graph with n vertices and the given edges.
+
+    Args:
+        n (int): The number of vertices.
+        edges (list[tuple[int, int]]): The edges, as pairs of vertex indices.
+
+    Returns:
+        list[list[int]]: An n x n symmetric adjacency matrix.
+    """
+    A = [[0] * n for _ in range(n)]
+    for a, b in edges:
+        A[a][b] = A[b][a] = 1
+    return A
+
+
 def main():
     """
-    Demonstrates the use of the subgraph isomorphism solver.
+    Demonstrates the difference between induced and non-induced subgraph isomorphism,
+    as a toy placement problem.
 
-    The example defines two undirected graphs using adjacency matrices:
-    - G: a 5-node graph (adjacency matrix), representing the larger graph.
-    - H: a 3-node graph (adjacency matrix), representing the smaller graph to search for as a subgraph.
+    G is a 2 x 3 mesh of hardware cells, with one extra diagonal link 0-4 in the left square:
 
-    The function attempts to find a subgraph of G that is isomorphic to H.
-    If a mapping is found, it prints the mapping from H's nodes to G's nodes and verifies the mapping.
-    Otherwise, it reports that no subgraph was found.
+        0 - 1 - 2
+        | \\ |   |
+        3 - 4 - 5
+
+    The patterns to place are:
+    - ring: a ring of four operations, a - b - c - d - a.
+    - ring+diagonal: the same ring with an extra link a - c.
+
+    For the ring, both squares of the mesh contain the four links it needs, so the
+    non-induced search may use either square; it does not matter that the left square
+    has a diagonal link the ring does not use. The induced search must use the right
+    square {1, 2, 4, 5}, because in the left square the diagonal is an extra edge between
+    the chosen cells. For placement, where unused links are harmless, the non-induced
+    version is the right question.
+
+    For ring+diagonal, only the left square has the extra link, so both versions must
+    use the left square {0, 1, 3, 4}.
+
+    For each pattern and version, the function prints the mapping from pattern vertices
+    to cells, the set of cells used, and whether verify_mapping accepts the mapping.
     """
-    G = [
-        [0, 0, 1, 0, 0],
-        [0, 0, 1, 0, 0],
-        [1, 1, 0, 1, 1],
-        [0, 0, 1, 0, 1],
-        [0, 0, 1, 1, 0],
-    ]
-
-    H = [
-        [0, 1, 1],
-        [1, 0, 1],
-        [1, 1, 0],
-    ]
+    G = from_edges(6, [(0, 1), (1, 2), (3, 4), (4, 5), (0, 3), (1, 4), (2, 5), (0, 4)])
+    patterns = {
+        "ring": from_edges(4, [(0, 1), (1, 2), (2, 3), (3, 0)]),
+        "ring+diagonal": from_edges(4, [(0, 1), (1, 2), (2, 3), (3, 0), (0, 2)]),
+    }
 
     assert is_symmetric(G), "Graph G should be undirected (symmetric adjacency matrix)"
-    assert is_symmetric(H), "Graph H should be undirected (symmetric adjacency matrix)"
 
-    mapping = find_subgraph(G, H)
-    if mapping:
-        print(f"Subgraph found! Mapping: {mapping}")
-        print(f"Verification: {verify_mapping(G, H, mapping)}")
-    else:
-        print("Subgraph not found")
+    for name, H in patterns.items():
+        assert is_symmetric(H), f"Pattern {name} should be undirected (symmetric adjacency matrix)"
+        for induced in (False, True):
+            label = f"{name}, {'induced' if induced else 'non-induced'}"
+            mapping = find_subgraph(G, H, induced=induced)
+            if mapping is None:
+                print(f"{label}: not found")
+            else:
+                cells = sorted(mapping.values())
+                ok = verify_mapping(G, H, mapping, induced=induced)
+                print(f"{label}: mapping {dict(sorted(mapping.items()))}, cells {cells}, verified {ok}")
 
 
 if __name__ == "__main__":
