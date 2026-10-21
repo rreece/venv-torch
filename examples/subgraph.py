@@ -1,19 +1,27 @@
 """
 subgraph.py
 
-Subgraph isomorphism problem solver
+Induced subgraph isomorphism by backtracking search. Candidates are filtered
+by degree as in Ullmann (1976), H vertices are visited in a fixed order of
+fewest candidates first (roughly Ullmann's decreasing-degree order), and
+forward checking against the current partial mapping (Haralick & Elliott 1980)
+prunes branches where some unmapped vertex has no candidate left. Ullmann's
+refinement procedure and dynamic fail-first ordering are not implemented.
 
-TODO: What is the reference in the literature that has the algorithm implemented here?
-Is it this?
+References:
 
-Corneil, D.G. & Gotlieb, C.C. (1970). An efficient algorithm for graph isomorphism. *Journal of the Association for Computing Machinery*, 17, 51--64.
+- Corneil, D.G. & Gotlieb, C.C. (1970). An efficient algorithm for graph isomorphism. *Journal of the Association for Computing Machinery*, 17, 51--64.
+- Ullmann, J.R. (1976). An algorithm for subgraph isomorphism. *Journal of the Association for Computing Machinery*, 23, 31--42.
+- Haralick, R.M., & Elliott, G.L. (1980). Increasing tree search efficiency for constraint satisfaction problems. *Artificial Intelligence*, 14, 263--313.
+- Cordella, L.P., Foggia, P., Sansone, C., & Vento, M. (2004). A (sub) graph isomorphism algorithm for matching large graphs. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 26, 1367--1372.
 """
 
 
 def find_subgraph(G, H):
     """
-    Finds an isomorphic mapping from graph H to a subgraph of graph G using
-    backtracking with degree-based pruning and forward checking. This implementation is
+    Finds an isomorphic mapping from graph H to an induced subgraph of graph G using
+    backtracking with degree-based pruning and forward checking. See the module
+    docstring for how this relates to the references.
 
     Parameters:
         G (list of list of int): The adjacency matrix of the target graph G.
@@ -65,10 +73,16 @@ def find_subgraph(G, H):
         """
         Enhanced validity check with neighborhood comparison
         """
+        # Self-loops must match
+        if H[h_vertex][h_vertex] != G[g_vertex][g_vertex]:
+            return False
         for h_neighbor in range(m):
             if h_neighbor in mapping:
                 g_neighbor = mapping[h_neighbor]
+                # Check both directions so directed graphs are handled
                 if H[h_vertex][h_neighbor] != G[g_vertex][g_neighbor]:
+                    return False
+                if H[h_neighbor][h_vertex] != G[g_neighbor][g_vertex]:
                     return False
         return True
 
