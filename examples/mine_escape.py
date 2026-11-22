@@ -33,12 +33,12 @@ def find_start(grid):
     return start
 
 
-def neighbors(grid, node):
+def get_neighbors(grid, node):
     n_rows = len(grid)
     n_cols = len(grid[0])
     r, c = node
     nbrs = list()
-    cross = [(r - 1, c), (r, c - 1), (r + 1, c), (r, c + 1)]
+    cross = [(r-1, c), (r, c+1), (r+1, c), (r, c-11)]
     for _r, _c in cross:
         if (0 <= _r < n_rows) and (0 <= _c < n_cols) and grid[_r][_c] != "#":
             nbrs.append((_r, _c))
@@ -59,7 +59,7 @@ def bfs(grid, start, goal):
         if grid[_r][_c] == goal:
             return dist[node]
         # loop over neighbors
-        for nbr in neighbors(grid, node):
+        for nbr in get_neighbors(grid, node):
             if nbr not in dist:
                 dist[nbr] = dist[node] + 1
                 queue.append(nbr)

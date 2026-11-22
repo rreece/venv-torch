@@ -21,7 +21,7 @@ board = [".....",
 from collections import deque
 
 
-def neighbors(grid, node):
+def get_neighbors(grid, node):
     n_rows = len(grid)
     n_cols = len(grid[0])
     r, c = node
@@ -33,25 +33,30 @@ def neighbors(grid, node):
     return nbrs
 
 
-def bfs(grid, start, goal):
+def bfs(grid, start):
     # start queue
     queue = deque([start])
-    dist = dict()
-    dist[start] = 0
+    visited = set()
+    visited.add(start)
+    order = list()
     # while queue
     while queue:
         # pop from queue
         node = queue.popleft()
-        _r, _c = node
-        # check for goal
-        if grid[_r][_c] == goal:
-            return dist[node]
+        order.append(node)
         # loop over neighbors
-        for nbr in neighbors(grid, node):
-            if nbr not in dist:
-                dist[nbr] = dist[node] + 1
-                queue.append(nbr)
-    return -1
+        neighbors = get_neighbors(grid, node)
+        n_mines = 0
+        for nbr in neighbors:
+            _r, _c = nbr
+            if grid[_r][_c] == "*":
+                n_mines += 1
+        if n_mines == 0:
+            for nbr in neighbors:
+                if nbr not in visited:
+                    visited.add(nbr)
+                    queue.append(nbr)
+    return order
 
 
 def minesweeper(board, click):
@@ -62,8 +67,13 @@ def minesweeper(board, click):
     4. The container: does order matter here, or would a stack, queue or recursion all give the same answer? (This is the question from earlier.)
     5. Edge case: clicking a mine.
     """
-    cells = 0
-    return cells
+    _r, _c = click
+    if board[_r][_c] == "*":
+        # mine
+        return -1
+
+    field = bfs(board, click)
+    return len(field)
 
 
 def main():
