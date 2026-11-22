@@ -87,8 +87,12 @@ def mine_escape(grid):
         goal = "E"
         obstacles = set(["#"])
         dist, node = bfs(grid, node, goal, obstacles)
-        result += dist
-        results.append(result)
+        if dist >= 0:
+            result += dist
+        else:
+            result = -1
+
+    results.append(result)
 
     results = list(filter(lambda x: x >= 0, results))
     results.sort()
@@ -139,6 +143,12 @@ def main():
     result = mine_escape(grid)
     print("Locked Door: ", result)
     assert result == 2
+
+    grid = ["Sk#E"]
+    # expected: -1 (key is reachable, but the exit is not reachable from the key)
+    result = mine_escape(grid)
+    print("Locked Door: ", result)
+    assert result == -1
 
 
 if __name__ == "__main__":
