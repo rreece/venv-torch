@@ -4,6 +4,31 @@ Examples of breadth-first search (BFS) and depth-first search (DFS).
 
 ---
 
+BFS and DFS are the same loop. The only difference is the container that holds what's left to explore:
+
+def search(start):
+    frontier = deque([start])     # the to-do list
+    seen = {start}
+    while frontier:
+        node = frontier.popleft() # BFS: take the oldest  (queue, FIFO)
+        # node = frontier.pop()   # DFS: take the newest  (stack, LIFO)
+        for nxt in neighbors(node):
+            if nxt not in seen:
+                seen.add(nxt)
+                frontier.append(nxt)
+
+So don't memorize them separately. Remember this loop and which end you pop from. Dijkstra is the same loop again with a heap, ordered by distance so far. (Strictly, swapping popleft for pop gives a valid DFS-style search but not the exact order recursive DFS uses. That rarely matters.)
+
+DFS is usually written recursively, because the call stack serves as the stack:
+
+def dfs(node):
+    seen.add(node)
+    for nxt in neighbors(node):
+        if nxt not in seen:
+            dfs(nxt)
+
+---
+
 Problem 1: Mine escape (BFS)
 
 A worker is in a mine, shown as a grid. S is the start, E is the exit, . is open ground and # is rock. Each move goes one cell up, down, left or right. Return the minimum number of moves to reach the exit, or -1 if it can't be reached.
