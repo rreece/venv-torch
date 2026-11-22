@@ -68,28 +68,35 @@ def bfs(grid, start, goal, obstacles):
 
 def mine_escape(grid):
     start = find_start(grid)
+    results = list()
 
-    # find the key
+    # Route A: first, try to find the exit (without the key)
+    goal = "E"
+    obstacles = set(["#", "D"])
+    dist, node = bfs(grid, start, goal, obstacles)
+    results.append(dist)
+
+    # Route B: find the key
     goal = "k"
     obstacles = set(["#", "D"])
     dist, node = bfs(grid, start, goal, obstacles)
-
-    if dist == -1:
-        return -1
-
     result = dist
 
-    # find the exit
-    goal = "E"
-    obstacles = set(["#"])
-    dist, node = bfs(grid, node, goal, obstacles)
+    if result >= 0:
+        # find the exit
+        goal = "E"
+        obstacles = set(["#"])
+        dist, node = bfs(grid, node, goal, obstacles)
+        result += dist
+        results.append(result)
 
-    if dist == -1:
+    results = list(filter(lambda x: x >= 0, results))
+    results.sort()
+
+    if len(results) >= 1:
+        return results[0]
+    else:
         return -1
-
-    result += dist
-
-    return result
 
 
 def main():
@@ -110,6 +117,28 @@ def main():
     result = mine_escape(grid)
     print("Locked Door: ", result)
     assert result == -1
+
+    grid = ["k.S",
+            "##D",
+            "..E"]
+    # expected: 6 (key is left of S)
+    result = mine_escape(grid)
+    print("Locked Door: ", result)
+    assert result == 6
+
+    grid = ["S.E"]
+    # expected: 2 (no key, no door needed)
+    result = mine_escape(grid)
+    print("Locked Door: ", result)
+    assert result == 2
+
+    grid = ["S.E",
+            "...",
+            "k.."]
+    # expected: 2 (key exists but going straight is shorter)
+    result = mine_escape(grid)
+    print("Locked Door: ", result)
+    assert result == 2
 
 
 if __name__ == "__main__":
