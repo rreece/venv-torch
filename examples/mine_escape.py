@@ -81,14 +81,14 @@ def main():
             "......#E"]
     result = mine_escape(grid)
     print("Mine Escape: ", result)
-    # expected: 15
+    assert result == 15
     
     grid = ["S#.",
             "##.",
             "..E"]
-    # expected: -1
     result = mine_escape(grid)
     print("Mine Escape: ", result)
+    assert result == -1
 
 
 if __name__ == "__main__":
