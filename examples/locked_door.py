@@ -38,7 +38,7 @@ def get_neighbors(grid, node, obstacles):
     n_cols = len(grid[0])
     r, c = node
     nbrs = list()
-    cross = [(r-1, c), (r, c+1), (r+1, c), (r, c-11)]
+    cross = [(r-1, c), (r, c+1), (r+1, c), (r, c-1)]
     for _r, _c in cross:
         if (0 <= _r < n_rows) and (0 <= _c < n_cols) and grid[_r][_c] not in obstacles:
             nbrs.append((_r, _c))
