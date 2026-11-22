@@ -46,11 +46,7 @@ def bfs(grid, start):
         order.append(node)
         # loop over neighbors
         neighbors = get_neighbors(grid, node)
-        n_mines = 0
-        for nbr in neighbors:
-            _r, _c = nbr
-            if grid[_r][_c] == "*":
-                n_mines += 1
+        n_mines = sum(grid[r][c] == "*" for r, c in neighbors)
         if n_mines == 0:
             for nbr in neighbors:
                 if nbr not in visited:
