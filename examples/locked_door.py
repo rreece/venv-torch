@@ -57,13 +57,13 @@ def bfs(grid, start, goal, obstacles):
         _r, _c = node
         # check for goal
         if grid[_r][_c] == goal:
-            return dist[node]
+            return dist[node], node
         # loop over neighbors
         for nbr in get_neighbors(grid, node, obstacles):
             if nbr not in dist:
                 dist[nbr] = dist[node] + 1
                 queue.append(nbr)
-    return -1
+    return -1, None
 
 
 def mine_escape(grid):
@@ -72,22 +72,22 @@ def mine_escape(grid):
     # find the key
     goal = "k"
     obstacles = set(["#", "D"])
-    search_result = bfs(grid, start, goal, obstacles)
+    dist, node = bfs(grid, start, goal, obstacles)
 
-    if search_result == -1:
-        return search_result
+    if dist == -1:
+        return -1
 
-    result = search_result
+    result = dist
 
     # find the exit
     goal = "E"
     obstacles = set(["#"])
-    search_result = bfs(grid, start, goal, obstacles)
+    dist, node = bfs(grid, node, goal, obstacles)
 
-    if search_result == -1:
-        return search_result
+    if dist == -1:
+        return -1
 
-    result += (search_result - 1)
+    result += dist
 
     return result
 
