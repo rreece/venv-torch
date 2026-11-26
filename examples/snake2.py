@@ -34,12 +34,12 @@ play(2, 2, [(0,1), (1,1), (1,0)], "RDLU")             # -> (3, 4)
 from collections import deque
 
 
-def is_valid_pos(n_rows, n_cols, snake, pos):
+def is_valid_pos(n_rows, n_cols, snake_set, pos):
     _r, _c = pos
-    return (0 <= _r < n_rows) and (0 <= _c < n_cols) and (pos not in snake)
+    return (0 <= _r < n_rows) and (0 <= _c < n_cols) and (pos not in snake_set)
 
 
-def validate_move(n_rows, n_cols, snake, food, move):
+def validate_move(n_rows, n_cols, snake, snake_set, food, move):
     assert len(snake) > 0
     pos = snake[-1]
     points = 0
@@ -62,9 +62,10 @@ def validate_move(n_rows, n_cols, snake, food, move):
         _ = food.popleft()
         points += 1
     else:
-        _ = snake.popleft()
+        _pos = snake.popleft()
+        snake_set.remove(_pos)
 
-    if is_valid_pos(n_rows, n_cols, snake, pos):
+    if is_valid_pos(n_rows, n_cols, snake_set, pos):
         return (points, pos)
     else:
         return (0, None)
@@ -82,13 +83,15 @@ def play(H, W, food, moves):
     n_moves = 0
     score = 0
     snake = deque([pos])
+    snake_set = set([pos])
     food = deque(food)
 
     for move in moves:
-        points, pos = validate_move(H, W, snake, food, move)
+        points, pos = validate_move(H, W, snake, snake_set, food, move)
         if pos is None:
             break
         snake.append(pos)
+        snake_set.add(pos)
         n_moves += 1
         score += points
     return (score, n_moves)
